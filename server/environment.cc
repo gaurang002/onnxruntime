@@ -5,6 +5,12 @@
 #include "environment.h"
 #include "onnxruntime_cxx_api.h"
 
+#ifdef USE_CUDA
+
+#include "core/providers/cuda/cuda_provider_factory.h"
+
+#endif
+
 #ifdef USE_DNNL
 
 #include "core/providers/dnnl/dnnl_provider_factory.h"
@@ -67,6 +73,10 @@ ServerEnvironment::ServerEnvironment(OrtLoggingLevel severity, spdlog::sinks_ini
 }
 
 void ServerEnvironment::RegisterExecutionProviders(){
+  #ifdef USE_CUDA
+  ORT_THROW_ON_ERROR(OrtSessionOptionsAppendExecutionProvider_CUDA(options_, 0));
+  #endif  
+
   #ifdef USE_DNNL
   Ort::ThrowOnError(OrtSessionOptionsAppendExecutionProvider_Dnnl(options_, 1));
   #endif
